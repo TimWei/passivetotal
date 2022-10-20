@@ -550,13 +550,16 @@ module PassiveTotal # :nodoc:
         delta
       )
 
-      case response.code
-      when "401"
-        raise InvalidAPIKeyError.new(obj)
-      when "429"
-        raise ExceededQuotaError.new(obj)
-      else
-        raise APIUsageError.new(obj)
+      if data['error']
+        message = data['error']['message']
+        case message
+        when "API key provided does not match any user."
+          raise InvalidAPIKeyError.new(obj)
+        when "Quota has been exceeded!"
+          raise ExceededQuotaError.new(obj)
+        else
+          raise APIUsageError.new(obj)
+        end
       end
 
       return obj
